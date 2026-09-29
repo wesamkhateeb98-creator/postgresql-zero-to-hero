@@ -1,0 +1,45 @@
+# Learning environment: PostgreSQL 17 (+ optional pgAdmin)
+#   docker compose up -d
+#   docker compose exec pg psql -U app -d shop
+#   docker compose --profile gui up -d      # + pgAdmin on http://localhost:5050
+services:
+  pg:
+    image: postgres:17
+    container_name: pg-learn
+    environment:
+      POSTGRES_USER: ${PG_USER:-app}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?set PG_PASSWORD in .env}
+      POSTGRES_DB: ${PG_DB:-shop}
+    command: >
+      postgres
+        -c shared_preload_libraries=pg_stat_statements
+        -c track_io_timing=on
+        -c log_min_duration_statement=500
+    ports:
+      - "127.0.0.1:${PG_PORT:-5432}:5432"   # localhost only (Docker bypasses UFW)
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./datasets/shop.sql:/docker-entrypoint-initdb.d/01-shop.sql:ro
+      - ./:/repo:ro                      # \i /repo/01-sql-basics/lab.sql
+    healthcheck:
+      # -h 127.0.0.1 → لا يصير healthy أثناء init (السيرفر المؤقت socket فقط)
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    profiles: ["gui"]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-change_me_admin}
+    ports:
+      - "127.0.0.1:5050:80"
+    depends_on:
+      pg:
+        condition: service_healthy
+
+volumes:
+  pg_data:

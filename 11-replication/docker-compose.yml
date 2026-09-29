@@ -1,0 +1,61 @@
+# Primary + streaming replica (same host).
+#   cp .env.example .env && docker compose up -d
+#   ⚠️ stop the root stack first (both use 127.0.0.1:5432)
+services:
+  pg-primary:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${PG_PASSWORD:?set in .env}
+      POSTGRES_DB: shop
+      REPL_PASSWORD: ${REPL_PASSWORD:?set in .env}      # used by init/01-replication.sh
+    command: >
+      postgres
+        -c wal_level=replica
+        -c max_wal_senders=10
+        -c max_replication_slots=10
+        -c hot_standby=on
+        -c shared_preload_libraries=pg_stat_statements
+    volumes:
+      - pg_primary:/var/lib/postgresql/data
+      - ./init/01-replication.sh:/docker-entrypoint-initdb.d/01-replication.sh:ro
+      - ../datasets/shop.sql:/docker-entrypoint-initdb.d/02-shop.sql:ro
+      - ../12-benchmarking/bench:/bench:ro
+    ports: ["127.0.0.1:${PRIMARY_PORT:-5432}:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U app -d shop"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+    restart: unless-stopped
+
+  pg-replica:
+    image: postgres:17
+    user: postgres
+    environment:
+      PGPASSWORD: ${REPL_PASSWORD}
+    depends_on:
+      pg-primary: { condition: service_healthy }
+    entrypoint:
+      - bash
+      - -c
+      - |
+        if [ ! -s /var/lib/postgresql/data/PG_VERSION ]; then
+          until pg_basebackup -h pg-primary -U replicator \
+                  -D /var/lib/postgresql/data -Fp -Xs -P -R -S replica1; do
+            echo "primary not ready, retrying..."
+            rm -rf /var/lib/postgresql/data/*
+            sleep 3
+          done
+          chmod 0700 /var/lib/postgresql/data
+        fi
+        exec postgres
+    volumes:
+      - pg_replica:/var/lib/postgresql/data
+      - ../12-benchmarking/bench:/bench:ro
+    ports: ["127.0.0.1:${REPLICA_PORT:-5433}:5432"]
+    restart: unless-stopped
+
+volumes:
+  pg_primary:
+  pg_replica:
