@@ -1,13 +1,26 @@
 # PostgreSQL Zero → Hero
 
-> من أول `SELECT` لحد Primary + Replica على VPS مع stress test. كل درس = diagram + SQL قابل للتشغيل على نفس الـ dataset.
+> From your first `SELECT` to a primary + replica on a VPS under stress test. Every lesson = diagram + runnable SQL on the same dataset.
 
 ## Big Picture
 
 ```mermaid
 flowchart LR
-    A["00–03<br/>SQL"] --> B["04–06<br/>Engine"] --> C["07–08<br/>Ops & Features"]
-    C --> D["09–11<br/>Docker · VPS · Replica"] --> E["12<br/>Benchmark"] --> F["🏁 Capstone"]
+    I["00<br/>What · Architecture<br/>Storage · CRUD"] --> A["01–04<br/>Setup · SQL"] --> B["05–07<br/>Engine"] --> C["08–09<br/>Ops & Features"]
+    C --> D["10–12<br/>Docker · VPS · Replica"] --> E["13<br/>Benchmark"] --> F["14<br/>🏁 Capstone"] --> G["15<br/>Best Practices"]
+```
+
+## Repo Layout
+
+```mermaid
+flowchart TD
+    R["README.md — this map"] --> DOC["Doc/ — all explanations"]
+    R --> LAB["labs/ — runnable SQL per phase"]
+    R --> DS["datasets/shop.sql — 1M orders"]
+    R --> BEN["bench/ — pgbench scripts"]
+    R --> DEP["deploy/ — VPS scripts"]
+    R --> REP["replication/ — primary + replica"]
+    R --> TST["tests/ — pgTAP"]
 ```
 
 ## Dataset (`datasets/shop.sql`)
@@ -16,18 +29,24 @@ flowchart LR
 erDiagram
     users ||--o{ orders : places
     products ||--o{ orders : "ordered in"
-    users { bigint id PK
-            text email UK
-            char country }
-    products { bigint id PK
-               text category
-               numeric price
-               jsonb attrs }
-    orders { bigint id PK
-             bigint user_id FK
-             bigint product_id FK
-             int qty
-             text status }
+    users {
+        bigint id PK
+        text email UK
+        char country
+    }
+    products {
+        bigint id PK
+        text category
+        numeric price
+        jsonb attrs
+    }
+    orders {
+        bigint id PK
+        bigint user_id FK
+        bigint product_id FK
+        int qty
+        text status
+    }
 ```
 
 | Table | Rows |
@@ -40,38 +59,40 @@ erDiagram
 
 ```bash
 cp .env.example .env
-docker compose up -d                      # أول مرة ~1 دقيقة لتحميل 1M order
+docker compose up -d                      # first start ~1 min to load 1M orders
 docker compose exec pg psql -U app -d shop
-\i /repo/01-sql-basics/lab.sql            # شغّل lab أي مرحلة
+\i /repo/labs/02-sql-basics.sql           # run any phase's lab
 ```
 
-> **Windows + Git Bash:** Git Bash بيحوّل `/repo/...` لـ `C:/Program Files/Git/repo/...` بأي أمر `docker compose exec ... -f /repo/...`.
-> الحل: `export MSYS_NO_PATHCONV=1` مرة وحدة بالـ terminal (أو استخدم PowerShell). `\i` جوا psql ما بيتأثر.
+> **Windows + Git Bash:** Git Bash rewrites `/repo/...` into `C:/Program Files/Git/repo/...` in any `docker compose exec ... -f /repo/...` command.
+> Fix: `export MSYS_NO_PATHCONV=1` once per terminal (or use PowerShell). `\i` inside psql is not affected.
 >
-> **5432 محجوز؟** (Postgres ثاني شغّال) → `PG_PORT=15432` بالـ `.env`.
+> **Port 5432 taken?** (another Postgres running) → set `PG_PORT=15432` in `.env`.
 
 ## Map
 
-| # | Phase | Docs | Lab |
+| # | Phase | Docs | Lab / Files |
 |---|---|---|---|
-| 00 | Setup | [Docker setup](00-setup/docs/01-docker-setup.md) · [psql](00-setup/docs/02-psql-cheatsheet.md) | — |
-| 01 | SQL Basics | [SELECT](01-sql-basics/docs/01-select-where.md) · [CRUD](01-sql-basics/docs/02-crud.md) · [JOINs](01-sql-basics/docs/03-joins.md) · [GROUP BY](01-sql-basics/docs/04-group-by.md) | [lab](01-sql-basics/lab.sql) |
-| 02 | Data Modeling | [Types](02-data-modeling/docs/01-data-types.md) · [Constraints](02-data-modeling/docs/02-constraints.md) · [Normalization](02-data-modeling/docs/03-normalization.md) | [lab](02-data-modeling/lab.sql) |
-| 03 | Advanced SQL | [CTE](03-advanced-sql/docs/01-cte.md) · [Window](03-advanced-sql/docs/02-window-functions.md) · [JSONB](03-advanced-sql/docs/03-jsonb.md) · [UPSERT](03-advanced-sql/docs/04-upsert.md) | [lab](03-advanced-sql/lab.sql) |
-| 04 | Indexes & Performance | [EXPLAIN](04-indexes-performance/docs/01-explain.md) · [B-Tree](04-indexes-performance/docs/02-btree.md) · [Types](04-indexes-performance/docs/03-index-types.md) · [Partial/Covering](04-indexes-performance/docs/04-partial-covering.md) | [lab](04-indexes-performance/lab.sql) |
-| 05 | Transactions & MVCC | [ACID](05-transactions-mvcc/docs/01-acid.md) · [Isolation](05-transactions-mvcc/docs/02-isolation-levels.md) · [MVCC](05-transactions-mvcc/docs/03-mvcc.md) · [Locks](05-transactions-mvcc/docs/04-locks-deadlocks.md) | [lab](05-transactions-mvcc/lab.sql) |
-| 06 | Internals | [Pages](06-internals/docs/01-storage-pages.md) · [WAL](06-internals/docs/02-wal.md) · [VACUUM](06-internals/docs/03-vacuum.md) · [Planner](06-internals/docs/04-planner-stats.md) | [lab](06-internals/lab.sql) |
-| 07 | Ops & Scaling | [Roles/RLS](07-ops-scaling/docs/01-roles-rls.md) · [Backup](07-ops-scaling/docs/02-backup-restore.md) · [Partitioning](07-ops-scaling/docs/03-partitioning.md) · [PgBouncer](07-ops-scaling/docs/04-pgbouncer.md) | [lab](07-ops-scaling/lab.sql) |
-| 08 | Ecosystem | [Functions/Triggers](08-ecosystem/docs/01-functions-triggers.md) · [Views](08-ecosystem/docs/02-views-matviews.md) · [Extensions](08-ecosystem/docs/03-extensions.md) · [FTS](08-ecosystem/docs/04-full-text-search.md) | [lab](08-ecosystem/lab.sql) |
-| 09 | Docker | [Image & Volumes](09-docker/docs/01-image-volumes.md) · [Compose](09-docker/docs/02-compose-healthcheck.md) | — |
-| 10 | VPS Deploy | [Setup](10-vps-deploy/docs/01-vps-setup.md) · [Security](10-vps-deploy/docs/02-security.md) · [Backups](10-vps-deploy/docs/03-backups-cron.md) | [scripts](10-vps-deploy/scripts/) |
-| 11 | Replication | [Streaming](11-replication/docs/01-streaming-replication.md) · [Verify/Lag](11-replication/docs/02-verify-lag.md) · [Failover](11-replication/docs/03-failover.md) · [2 VPS](11-replication/docs/04-two-vps.md) | [compose](11-replication/docker-compose.yml) |
-| 12 | Benchmarking | [pgbench](12-benchmarking/docs/01-pgbench-basics.md) · [Custom](12-benchmarking/docs/02-custom-scripts.md) · [Ramp](12-benchmarking/docs/03-ramp-and-monitor.md) · [Tuning](12-benchmarking/docs/04-tuning-before-after.md) · [pgTAP](12-benchmarking/docs/05-pgtap.md) | [bench](12-benchmarking/bench/) |
-| 🏁 | Capstone | [E-commerce backend](projects/ecommerce-backend/README.md) | — |
+| 00 | Introduction | [What is PostgreSQL](Doc/00-introduction/01-what-is-postgresql.md) · [vs SQL Server](Doc/00-introduction/02-postgresql-vs-sql-server.md) · [Architecture](Doc/00-introduction/03-architecture.md) · [Storage](Doc/00-introduction/04-storage-layout.md) · [CRUD internals](Doc/00-introduction/05-crud-internals.md) | — |
+| 01 | Setup | [Docker setup](Doc/01-setup/01-docker-setup.md) · [psql](Doc/01-setup/02-psql-cheatsheet.md) | [compose](docker-compose.yml) |
+| 02 | SQL Basics | [SELECT](Doc/02-sql-basics/01-select-where.md) · [CRUD](Doc/02-sql-basics/02-crud.md) · [JOINs](Doc/02-sql-basics/03-joins.md) · [GROUP BY](Doc/02-sql-basics/04-group-by.md) | [lab](labs/02-sql-basics.sql) |
+| 03 | Data Modeling | [Types](Doc/03-data-modeling/01-data-types.md) · [Constraints](Doc/03-data-modeling/02-constraints.md) · [Normalization](Doc/03-data-modeling/03-normalization.md) | [lab](labs/03-data-modeling.sql) |
+| 04 | Advanced SQL | [CTE](Doc/04-advanced-sql/01-cte.md) · [Window](Doc/04-advanced-sql/02-window-functions.md) · [JSONB](Doc/04-advanced-sql/03-jsonb.md) · [UPSERT](Doc/04-advanced-sql/04-upsert.md) | [lab](labs/04-advanced-sql.sql) |
+| 05 | Indexes & Performance | [EXPLAIN](Doc/05-indexes-performance/01-explain.md) · [B-Tree](Doc/05-indexes-performance/02-btree.md) · [Types](Doc/05-indexes-performance/03-index-types.md) · [Partial/Covering](Doc/05-indexes-performance/04-partial-covering.md) | [lab](labs/05-indexes-performance.sql) |
+| 06 | Transactions & MVCC | [ACID](Doc/06-transactions-mvcc/01-acid.md) · [Isolation](Doc/06-transactions-mvcc/02-isolation-levels.md) · [MVCC](Doc/06-transactions-mvcc/03-mvcc.md) · [Locks](Doc/06-transactions-mvcc/04-locks-deadlocks.md) | [lab](labs/06-transactions-mvcc.sql) |
+| 07 | Internals | [Pages](Doc/07-internals/01-storage-pages.md) · [WAL](Doc/07-internals/02-wal.md) · [VACUUM](Doc/07-internals/03-vacuum.md) · [Planner](Doc/07-internals/04-planner-stats.md) | [lab](labs/07-internals.sql) |
+| 08 | Ops & Scaling | [Roles/RLS](Doc/08-ops-scaling/01-roles-rls.md) · [Backup](Doc/08-ops-scaling/02-backup-restore.md) · [Partitioning](Doc/08-ops-scaling/03-partitioning.md) · [PgBouncer](Doc/08-ops-scaling/04-pgbouncer.md) | [lab](labs/08-ops-scaling.sql) |
+| 09 | Ecosystem | [Functions/Triggers](Doc/09-ecosystem/01-functions-triggers.md) · [Views](Doc/09-ecosystem/02-views-matviews.md) · [Extensions](Doc/09-ecosystem/03-extensions.md) · [FTS](Doc/09-ecosystem/04-full-text-search.md) | [lab](labs/09-ecosystem.sql) |
+| 10 | Docker | [Image & Volumes](Doc/10-docker/01-image-volumes.md) · [Compose](Doc/10-docker/02-compose-healthcheck.md) | — |
+| 11 | VPS Deploy | [Setup](Doc/11-vps-deploy/01-vps-setup.md) · [Security](Doc/11-vps-deploy/02-security.md) · [Backups](Doc/11-vps-deploy/03-backups-cron.md) | [deploy/](deploy/) |
+| 12 | Replication | [Streaming](Doc/12-replication/01-streaming-replication.md) · [Verify/Lag](Doc/12-replication/02-verify-lag.md) · [Failover](Doc/12-replication/03-failover.md) · [2 VPS](Doc/12-replication/04-two-vps.md) | [replication/](replication/docker-compose.yml) |
+| 13 | Benchmarking | [pgbench](Doc/13-benchmarking/01-pgbench-basics.md) · [Custom](Doc/13-benchmarking/02-custom-scripts.md) · [Ramp](Doc/13-benchmarking/03-ramp-and-monitor.md) · [Tuning](Doc/13-benchmarking/04-tuning-before-after.md) · [pgTAP](Doc/13-benchmarking/05-pgtap.md) | [bench/](bench/) · [tests/](tests/) |
+| 14 | Capstone | [E-commerce database](Doc/14-capstone/01-ecommerce-capstone.md) | — |
+| 15 | Best Practices | [Best practices](Doc/15-best-practices/01-best-practices.md) · [Anti-patterns](Doc/15-best-practices/02-anti-patterns.md) | — |
 
 ## Conventions
 
-- كل doc < 2 دقائق قراءة، ينتهي بـ `Next →`
-- الأرقام المعلّمة "مقاس" = Docker Desktop · 4 CPU · 8 GB · postgres:17؛ الباقي توضيحي — أرقامك رح تختلف
-- `app` = superuser (للتعلّم فقط) — بالـ production شوف [07-roles](07-ops-scaling/docs/01-roles-rls.md)
-- Reset كامل: `docker compose down -v && docker compose up -d`
+- Every doc reads in < 3 minutes and ends with `Next →`
+- Numbers marked **measured** = Docker Desktop · 4 CPU · 8 GB · postgres:17.11; the rest are illustrative — yours will differ
+- `app` = superuser (learning only) — for production see [08-roles](Doc/08-ops-scaling/01-roles-rls.md)
+- Full reset: `docker compose down -v && docker compose up -d`

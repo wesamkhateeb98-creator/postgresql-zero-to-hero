@@ -20,9 +20,9 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./datasets/shop.sql:/docker-entrypoint-initdb.d/01-shop.sql:ro
-      - ./:/repo:ro                      # \i /repo/01-sql-basics/lab.sql
+      - ./:/repo:ro                      # \i /repo/labs/02-sql-basics.sql
     healthcheck:
-      # -h 127.0.0.1 → لا يصير healthy أثناء init (السيرفر المؤقت socket فقط)
+      # -h 127.0.0.1 → not healthy during init (the temp server listens on the socket only)
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 3s

@@ -1,0 +1,20 @@
+# Benchmark Results
+
+> Log every run here. Keep `-s -c -j -T` identical between runs and change one thing only.
+
+## Environment
+
+| | |
+|---|---|
+| Host | e.g. Hetzner CX32 · 4 vCPU · 8 GB · NVMe |
+| Postgres | 17.x (docker) |
+| Dataset | shop (1M orders) / pgbench `-s 50` |
+| Command | `pgbench -U app -n -c 50 -j 4 -T 60 -f .../read_heavy.sql shop` |
+
+## Runs
+
+| # | Date | Change | TPS | avg ms | stddev | Notes |
+|---|---|---|---|---|---|---|
+| 0 | | baseline | | | | |
+| 1 | | | | | | |
+| 2 | | | | | | |
