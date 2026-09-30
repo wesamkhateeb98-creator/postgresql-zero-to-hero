@@ -7,7 +7,7 @@
 ```mermaid
 flowchart LR
     I["00<br/>What · Architecture<br/>Storage · CRUD"] --> A["01–04<br/>Setup · SQL"] --> B["05–07<br/>Engine"] --> C["08–09<br/>Ops & Features"]
-    C --> D["10<br/>PL/pgSQL"] --> D2["11–13<br/>Docker · VPS · Replica"] --> E["14<br/>Benchmark"] --> F["15<br/>🏁 Capstone"] --> G["16<br/>Best Practices"]
+    C --> D["10–11<br/>PL/pgSQL · .NET"] --> D2["12–14<br/>Docker · VPS · Replica"] --> E["15<br/>Benchmark"] --> F["16<br/>🏁 Capstone"] --> G["17<br/>Best Practices"]
 ```
 
 ## Repo Layout
@@ -21,6 +21,7 @@ flowchart TD
     R --> DEP["deploy/ — VPS scripts"]
     R --> REP["replication/ — primary + replica"]
     R --> TST["tests/ — pgTAP"]
+    R --> NET["samples/dotnet/ — .NET 10 samples"]
 ```
 
 ## Dataset (`datasets/shop.sql`)
@@ -84,12 +85,13 @@ docker compose exec pg psql -U app -d shop
 | 08 | Ops & Scaling | [Roles/RLS](Doc/08-ops-scaling/01-roles-rls.md) · [Backup](Doc/08-ops-scaling/02-backup-restore.md) · [Partitioning](Doc/08-ops-scaling/03-partitioning.md) · [PgBouncer](Doc/08-ops-scaling/04-pgbouncer.md) | [lab](labs/08-ops-scaling.sql) |
 | 09 | Ecosystem | [Functions/Triggers](Doc/09-ecosystem/01-functions-triggers.md) · [Views](Doc/09-ecosystem/02-views-matviews.md) · [Extensions](Doc/09-ecosystem/03-extensions.md) · [FTS](Doc/09-ecosystem/04-full-text-search.md) | [lab](labs/09-ecosystem.sql) |
 | 10 | PL/pgSQL | [Basics](Doc/10-plpgsql/01-basics.md) · [Loops](Doc/10-plpgsql/02-loops.md) · [Functions](Doc/10-plpgsql/03-functions.md) · [Procedures](Doc/10-plpgsql/04-procedures.md) · [Errors](Doc/10-plpgsql/05-errors.md) · [Dynamic SQL](Doc/10-plpgsql/06-dynamic-sql.md) · [Triggers](Doc/10-plpgsql/07-triggers-deep.md) | [lab](labs/10-plpgsql.sql) |
-| 11 | Docker | [Image & Volumes](Doc/11-docker/01-image-volumes.md) · [Compose](Doc/11-docker/02-compose-healthcheck.md) | — |
-| 12 | VPS Deploy | [Setup](Doc/12-vps-deploy/01-vps-setup.md) · [Security](Doc/12-vps-deploy/02-security.md) · [Backups](Doc/12-vps-deploy/03-backups-cron.md) | [deploy/](deploy/) |
-| 13 | Replication | [Streaming](Doc/13-replication/01-streaming-replication.md) · [Verify/Lag](Doc/13-replication/02-verify-lag.md) · [Failover](Doc/13-replication/03-failover.md) · [2 VPS](Doc/13-replication/04-two-vps.md) | [replication/](replication/docker-compose.yml) |
-| 14 | Benchmarking | [pgbench](Doc/14-benchmarking/01-pgbench-basics.md) · [Custom](Doc/14-benchmarking/02-custom-scripts.md) · [Ramp](Doc/14-benchmarking/03-ramp-and-monitor.md) · [Tuning](Doc/14-benchmarking/04-tuning-before-after.md) · [pgTAP](Doc/14-benchmarking/05-pgtap.md) | [bench/](bench/) · [tests/](tests/) |
-| 15 | Capstone | [E-commerce database](Doc/15-capstone/01-ecommerce-capstone.md) | — |
-| 16 | Best Practices | [Best practices](Doc/16-best-practices/01-best-practices.md) · [Anti-patterns](Doc/16-best-practices/02-anti-patterns.md) | — |
+| 11 | .NET | [Overview](Doc/11-dotnet/01-overview.md) · [Connection](Doc/11-dotnet/02-connection.md) · [Npgsql](Doc/11-dotnet/03-npgsql-basics.md) · [Npgsql advanced](Doc/11-dotnet/04-npgsql-advanced.md) · [Dapper](Doc/11-dotnet/05-dapper.md) · [EF Core](Doc/11-dotnet/06-efcore-basics.md) · [EF + Postgres](Doc/11-dotnet/07-efcore-postgres-features.md) · [EF perf](Doc/11-dotnet/08-efcore-performance.md) · [Resilience](Doc/11-dotnet/09-resilience.md) · [PgBouncer](Doc/11-dotnet/10-pgbouncer.md) · [Observability](Doc/11-dotnet/11-observability.md) · [Testing](Doc/11-dotnet/12-testing.md) · [Migrations](Doc/11-dotnet/13-migrations.md) · [Benchmark](Doc/11-dotnet/14-benchmark.md) | [samples/dotnet/](samples/dotnet/) |
+| 12 | Docker | [Image & Volumes](Doc/12-docker/01-image-volumes.md) · [Compose](Doc/12-docker/02-compose-healthcheck.md) | — |
+| 13 | VPS Deploy | [Setup](Doc/13-vps-deploy/01-vps-setup.md) · [Security](Doc/13-vps-deploy/02-security.md) · [Backups](Doc/13-vps-deploy/03-backups-cron.md) | [deploy/](deploy/) |
+| 14 | Replication | [Streaming](Doc/14-replication/01-streaming-replication.md) · [Verify/Lag](Doc/14-replication/02-verify-lag.md) · [Failover](Doc/14-replication/03-failover.md) · [2 VPS](Doc/14-replication/04-two-vps.md) | [replication/](replication/docker-compose.yml) |
+| 15 | Benchmarking | [pgbench](Doc/15-benchmarking/01-pgbench-basics.md) · [Custom](Doc/15-benchmarking/02-custom-scripts.md) · [Ramp](Doc/15-benchmarking/03-ramp-and-monitor.md) · [Tuning](Doc/15-benchmarking/04-tuning-before-after.md) · [pgTAP](Doc/15-benchmarking/05-pgtap.md) | [bench/](bench/) · [tests/](tests/) |
+| 16 | Capstone | [E-commerce database](Doc/16-capstone/01-ecommerce-capstone.md) | — |
+| 17 | Best Practices | [Best practices](Doc/17-best-practices/01-best-practices.md) · [Anti-patterns](Doc/17-best-practices/02-anti-patterns.md) | — |
 
 ## Conventions
 

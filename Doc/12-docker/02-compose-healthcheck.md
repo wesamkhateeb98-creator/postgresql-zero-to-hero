@@ -59,4 +59,4 @@ healthcheck:
 ❌ `ports: "5432:5432"` → open to the internet (Docker bypasses UFW)
 ✅ `"127.0.0.1:5432:5432"`
 
-Next → [12-vps-deploy/01-vps-setup](../12-vps-deploy/01-vps-setup.md)
+Next → [13-vps-deploy/01-vps-setup](../13-vps-deploy/01-vps-setup.md)

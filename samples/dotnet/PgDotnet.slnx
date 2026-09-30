@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/01-Npgsql/">
+    <Project Path="01-Npgsql/NpgsqlSample.csproj" />
+  </Folder>
+  <Folder Name="/02-Dapper/">
+    <Project Path="02-Dapper/DapperSample.csproj" />
+  </Folder>
+  <Folder Name="/03-EfCore/">
+    <Project Path="03-EfCore/EfCoreSample.csproj" />
+  </Folder>
+  <Folder Name="/04-WebApi/">
+    <Project Path="04-WebApi/WebApi.csproj" />
+  </Folder>
+  <Folder Name="/05-Tests/">
+    <Project Path="05-Tests/Tests.csproj" />
+  </Folder>
+  <Folder Name="/06-Benchmarks/">
+    <Project Path="06-Benchmarks/Benchmarks.csproj" />
+  </Folder>
+</Solution>

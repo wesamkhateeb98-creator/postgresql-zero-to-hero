@@ -53,4 +53,4 @@ COMPOSE_DIR=/opt/pg/replication SERVICE=pg-primary /opt/pg/deploy/backup.sh
 ❌ `docker compose exec pg pg_dump > file` (without `-T`) → TTY characters corrupt the file
 ✅ `docker compose exec -T ...`
 
-Next → [13-replication/01-streaming-replication](../13-replication/01-streaming-replication.md)
+Next → [14-replication/01-streaming-replication](../14-replication/01-streaming-replication.md)

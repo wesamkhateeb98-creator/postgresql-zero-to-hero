@@ -70,10 +70,10 @@ volumes:
 | 2 | Same `postgres:17` on both |
 | 3 | `pg_stat_replication` → `streaming` |
 | 4 | Monitor lag + slots ([02](02-verify-lag.md)) |
-| 5 | Backups still running ([12](../12-vps-deploy/03-backups-cron.md)) |
+| 5 | Backups still running ([13](../13-vps-deploy/03-backups-cron.md)) |
 
 ## Pitfall
 ❌ `ports: "5432:5432"` on the primary so the replica can reach it → open to the world
 ✅ Bind to the private IP + `ufw allow from 10.0.0.2`
 
-Next → [14-benchmarking/01-pgbench-basics](../14-benchmarking/01-pgbench-basics.md)
+Next → [15-benchmarking/01-pgbench-basics](../15-benchmarking/01-pgbench-basics.md)

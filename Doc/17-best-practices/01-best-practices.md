@@ -79,16 +79,16 @@ ALTER TABLE orders VALIDATE CONSTRAINT qty_max;                          -- no w
 | PgBouncer; `max_connections` ~100 | [08-04](../08-ops-scaling/04-pgbouncer.md) |
 | `pg_stat_statements` always on | [09-03](../09-ecosystem/03-extensions.md) |
 | Autovacuum on, tuned per big table | [07-03](../07-internals/03-vacuum.md) |
-| Backups offsite + monthly restore drill | [12-03](../12-vps-deploy/03-backups-cron.md) |
-| Monitor replication lag **and** slots | [13-02](../13-replication/02-verify-lag.md) |
-| Pin the major version (`postgres:17`) | [11-01](../11-docker/01-image-volumes.md) |
+| Backups offsite + monthly restore drill | [13-03](../13-vps-deploy/03-backups-cron.md) |
+| Monitor replication lag **and** slots | [14-02](../14-replication/02-verify-lag.md) |
+| Pin the major version (`postgres:17`) | [12-01](../12-docker/01-image-volumes.md) |
 
 ## Security
 
 | ✅ Do | Lesson |
 |---|---|
 | App role without superuser, least privilege | [08-01](../08-ops-scaling/01-roles-rls.md) |
-| Bind `127.0.0.1` / private IP, SSH tunnel | [12-02](../12-vps-deploy/02-security.md) |
-| `scram-sha-256`, never `trust` | [12-02](../12-vps-deploy/02-security.md) |
+| Bind `127.0.0.1` / private IP, SSH tunnel | [13-02](../13-vps-deploy/02-security.md) |
+| `scram-sha-256`, never `trust` | [13-02](../13-vps-deploy/02-security.md) |
 
 Next → [02-anti-patterns](02-anti-patterns.md)

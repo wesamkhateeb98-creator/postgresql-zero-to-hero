@@ -54,4 +54,4 @@ docker compose exec pg pg_prove -U app -d shop /repo/tests/test_schema.sql
 - Test constraints + triggers + functions
 - Run in CI before every migration
 
-Next → [15-capstone/01-ecommerce-capstone](../15-capstone/01-ecommerce-capstone.md)
+Next → [16-capstone/01-ecommerce-capstone](../16-capstone/01-ecommerce-capstone.md)

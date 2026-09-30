@@ -2,3 +2,8 @@
 *.dump
 *.log
 backups/
+bin/
+obj/
+BenchmarkDotNet.Artifacts/
+*.user
+.vs/

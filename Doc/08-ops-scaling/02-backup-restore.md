@@ -47,6 +47,6 @@ docker compose exec pg pg_basebackup -U app -D /tmp/base -Ft -z -Xs -P
 
 ## Pitfall
 ❌ Backups only on the same VPS → disk dies = everything gone
-✅ Upload to S3 / Backblaze ([12 cron](../12-vps-deploy/03-backups-cron.md))
+✅ Upload to S3 / Backblaze ([13 cron](../13-vps-deploy/03-backups-cron.md))
 
 Next → [03-partitioning](03-partitioning.md)

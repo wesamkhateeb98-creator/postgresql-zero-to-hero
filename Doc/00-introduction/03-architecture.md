@@ -151,7 +151,7 @@ Real process list (read from `/proc` inside the container):
 | 31 | logical replication launcher | start logical replication workers | — |
 | 122 | client backend | **your psql session** | — |
 
-Started only when needed: `walsender` (a replica connects — [13](../13-replication/01-streaming-replication.md)), `archiver` (`archive_mode = on`), parallel workers, autovacuum workers.
+Started only when needed: `walsender` (a replica connects — [13](../14-replication/01-streaming-replication.md)), `archiver` (`archive_mode = on`), parallel workers, autovacuum workers.
 
 ## 7. Read path — cache hit vs miss
 

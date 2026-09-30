@@ -43,7 +43,7 @@ SELECT pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), :'before'));
 
 ## Key Points
 - Durable COMMIT = WAL on disk
-- A replica = a WAL consumer ([13](../13-replication/01-streaming-replication.md))
+- A replica = a WAL consumer ([14](../14-replication/01-streaming-replication.md))
 - Too many checkpoints = I/O spikes
 
 ## Pitfall
