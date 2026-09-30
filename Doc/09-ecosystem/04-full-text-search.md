@@ -50,4 +50,4 @@ ORDER BY rank DESC;
 
 Lab → [labs/09-ecosystem.sql](../../labs/09-ecosystem.sql)
 
-Next → [10-docker/01-image-volumes](../10-docker/01-image-volumes.md)
+Next → [10-plpgsql/01-basics](../10-plpgsql/01-basics.md)

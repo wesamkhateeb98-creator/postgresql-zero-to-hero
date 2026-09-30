@@ -7,7 +7,7 @@
 ```mermaid
 flowchart LR
     I["00<br/>What · Architecture<br/>Storage · CRUD"] --> A["01–04<br/>Setup · SQL"] --> B["05–07<br/>Engine"] --> C["08–09<br/>Ops & Features"]
-    C --> D["10–12<br/>Docker · VPS · Replica"] --> E["13<br/>Benchmark"] --> F["14<br/>🏁 Capstone"] --> G["15<br/>Best Practices"]
+    C --> D["10<br/>PL/pgSQL"] --> D2["11–13<br/>Docker · VPS · Replica"] --> E["14<br/>Benchmark"] --> F["15<br/>🏁 Capstone"] --> G["16<br/>Best Practices"]
 ```
 
 ## Repo Layout
@@ -83,12 +83,13 @@ docker compose exec pg psql -U app -d shop
 | 07 | Internals | [Pages](Doc/07-internals/01-storage-pages.md) · [WAL](Doc/07-internals/02-wal.md) · [VACUUM](Doc/07-internals/03-vacuum.md) · [Planner](Doc/07-internals/04-planner-stats.md) | [lab](labs/07-internals.sql) |
 | 08 | Ops & Scaling | [Roles/RLS](Doc/08-ops-scaling/01-roles-rls.md) · [Backup](Doc/08-ops-scaling/02-backup-restore.md) · [Partitioning](Doc/08-ops-scaling/03-partitioning.md) · [PgBouncer](Doc/08-ops-scaling/04-pgbouncer.md) | [lab](labs/08-ops-scaling.sql) |
 | 09 | Ecosystem | [Functions/Triggers](Doc/09-ecosystem/01-functions-triggers.md) · [Views](Doc/09-ecosystem/02-views-matviews.md) · [Extensions](Doc/09-ecosystem/03-extensions.md) · [FTS](Doc/09-ecosystem/04-full-text-search.md) | [lab](labs/09-ecosystem.sql) |
-| 10 | Docker | [Image & Volumes](Doc/10-docker/01-image-volumes.md) · [Compose](Doc/10-docker/02-compose-healthcheck.md) | — |
-| 11 | VPS Deploy | [Setup](Doc/11-vps-deploy/01-vps-setup.md) · [Security](Doc/11-vps-deploy/02-security.md) · [Backups](Doc/11-vps-deploy/03-backups-cron.md) | [deploy/](deploy/) |
-| 12 | Replication | [Streaming](Doc/12-replication/01-streaming-replication.md) · [Verify/Lag](Doc/12-replication/02-verify-lag.md) · [Failover](Doc/12-replication/03-failover.md) · [2 VPS](Doc/12-replication/04-two-vps.md) | [replication/](replication/docker-compose.yml) |
-| 13 | Benchmarking | [pgbench](Doc/13-benchmarking/01-pgbench-basics.md) · [Custom](Doc/13-benchmarking/02-custom-scripts.md) · [Ramp](Doc/13-benchmarking/03-ramp-and-monitor.md) · [Tuning](Doc/13-benchmarking/04-tuning-before-after.md) · [pgTAP](Doc/13-benchmarking/05-pgtap.md) | [bench/](bench/) · [tests/](tests/) |
-| 14 | Capstone | [E-commerce database](Doc/14-capstone/01-ecommerce-capstone.md) | — |
-| 15 | Best Practices | [Best practices](Doc/15-best-practices/01-best-practices.md) · [Anti-patterns](Doc/15-best-practices/02-anti-patterns.md) | — |
+| 10 | PL/pgSQL | [Basics](Doc/10-plpgsql/01-basics.md) · [Loops](Doc/10-plpgsql/02-loops.md) · [Functions](Doc/10-plpgsql/03-functions.md) · [Procedures](Doc/10-plpgsql/04-procedures.md) · [Errors](Doc/10-plpgsql/05-errors.md) · [Dynamic SQL](Doc/10-plpgsql/06-dynamic-sql.md) · [Triggers](Doc/10-plpgsql/07-triggers-deep.md) | [lab](labs/10-plpgsql.sql) |
+| 11 | Docker | [Image & Volumes](Doc/11-docker/01-image-volumes.md) · [Compose](Doc/11-docker/02-compose-healthcheck.md) | — |
+| 12 | VPS Deploy | [Setup](Doc/12-vps-deploy/01-vps-setup.md) · [Security](Doc/12-vps-deploy/02-security.md) · [Backups](Doc/12-vps-deploy/03-backups-cron.md) | [deploy/](deploy/) |
+| 13 | Replication | [Streaming](Doc/13-replication/01-streaming-replication.md) · [Verify/Lag](Doc/13-replication/02-verify-lag.md) · [Failover](Doc/13-replication/03-failover.md) · [2 VPS](Doc/13-replication/04-two-vps.md) | [replication/](replication/docker-compose.yml) |
+| 14 | Benchmarking | [pgbench](Doc/14-benchmarking/01-pgbench-basics.md) · [Custom](Doc/14-benchmarking/02-custom-scripts.md) · [Ramp](Doc/14-benchmarking/03-ramp-and-monitor.md) · [Tuning](Doc/14-benchmarking/04-tuning-before-after.md) · [pgTAP](Doc/14-benchmarking/05-pgtap.md) | [bench/](bench/) · [tests/](tests/) |
+| 15 | Capstone | [E-commerce database](Doc/15-capstone/01-ecommerce-capstone.md) | — |
+| 16 | Best Practices | [Best practices](Doc/16-best-practices/01-best-practices.md) · [Anti-patterns](Doc/16-best-practices/02-anti-patterns.md) | — |
 
 ## Conventions
 

@@ -15,7 +15,7 @@ erDiagram
 ```mermaid
 flowchart LR
     S["Schema<br/>03"] --> Q["Queries<br/>04"] --> I["Indexes<br/>05"] --> T["Concurrency<br/>06"]
-    T --> O["Security<br/>08"] --> D["Deploy<br/>11"] --> R["Replica<br/>12"] --> B["Benchmark<br/>13"]
+    T --> O["Security<br/>08"] --> D["Deploy<br/>12"] --> R["Replica<br/>13"] --> B["Benchmark<br/>14"]
 ```
 
 ## Tasks
@@ -46,20 +46,20 @@ flowchart LR
 - [ ] `orders` partitioned by month
 - [ ] Materialized view `daily_sales` + refresh
 
-### 6. Deploy (10 · 11 · 12)
+### 6. Deploy (11 · 12 · 13)
 - [ ] VPS + full security checklist
 - [ ] Primary + replica on 2 VPSs
 - [ ] Daily backup + successful restore drill
 - [ ] Documented failover drill
 
-### 7. Benchmark (13)
+### 7. Benchmark (14)
 - [ ] pgbench scripts for checkout + browse
 - [ ] Ramp test → find the sweet spot
 - [ ] 3 tuning runs in [bench/results.md](../../bench/results.md)
 - [ ] pgTAP tests for every constraint
 
-### 8. Review (15)
-- [ ] Walk through [best practices](../15-best-practices/01-best-practices.md) and [anti-patterns](../15-best-practices/02-anti-patterns.md)
+### 8. Review (16)
+- [ ] Walk through [best practices](../16-best-practices/01-best-practices.md) and [anti-patterns](../16-best-practices/02-anti-patterns.md)
 
 ## Definition of Done
 
@@ -71,4 +71,4 @@ flowchart LR
 | Restore time | < 5 min |
 | pgTAP | all green |
 
-Next → [15-best-practices/01-best-practices](../15-best-practices/01-best-practices.md)
+Next → [16-best-practices/01-best-practices](../16-best-practices/01-best-practices.md)

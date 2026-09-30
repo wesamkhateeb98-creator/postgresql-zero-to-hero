@@ -42,7 +42,7 @@ The app connects to `:6432` instead of `:5432`.
 | 50 | 3,641 | 13.7 ms |
 | 200 | 💥 `FATAL: sorry, too many clients already` | — |
 
-More clients past ~2–3× cores = **less** throughput. Full run: [13-benchmarking/03](../13-benchmarking/03-ramp-and-monitor.md)
+More clients past ~2–3× cores = **less** throughput. Full run: [14-benchmarking/03](../14-benchmarking/03-ramp-and-monitor.md)
 
 ## Key Points
 - Pool size ≈ `cores × 2–4`

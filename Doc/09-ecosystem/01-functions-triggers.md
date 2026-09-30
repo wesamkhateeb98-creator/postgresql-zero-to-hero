@@ -72,4 +72,6 @@ SELECT * FROM price_audit;         -- 1 | 144.39 | 145.39 | ...
 ❌ All business logic in triggers → debugging nightmare
 ✅ Triggers only for simple invariants
 
+Full PL/pgSQL (loops, procedures, errors, dynamic SQL, trigger internals) → [10-plpgsql](../10-plpgsql/01-basics.md)
+
 Next → [02-views-matviews](02-views-matviews.md)
