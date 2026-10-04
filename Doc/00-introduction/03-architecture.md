@@ -422,7 +422,7 @@ sequenceDiagram
     participant D as disk
     App->>PM: 1. connect
     PM->>BE: 2. fork()
-    App->>BE: 3. INSERT INTO orders ... ; COMMIT
+    App->>BE: 3. INSERT INTO orders ... then COMMIT
     BE->>BE: 4. parse → analyze → plan → execute
     BE->>SM: 5. new row in a page in shared_buffers (dirty)<br/>+ WAL record in WAL buffers
     BE->>D: 6. COMMIT → fsync WAL to pg_wal/
