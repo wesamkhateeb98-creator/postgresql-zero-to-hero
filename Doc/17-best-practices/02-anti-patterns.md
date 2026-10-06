@@ -67,7 +67,7 @@ UPDATE products SET stock = stock - 1 WHERE id = 1 AND stock > 0 RETURNING stock
 | `tags = 'a,b,c'` | no FK, no index, string parsing | join table |
 | EAV (`entity, attribute, value`) | every query = N self-joins, no types | real columns or `jsonb` |
 | `"CamelCase"` identifiers | quotes forever | `snake_case` |
-| Random `uuid` v4 PK on huge write-heavy tables | 30 MB vs 21 MB index (measured), scattered inserts | `bigint` identity, or `uuidv7()` (PG18) |
+| Random `uuid` v4 PK on huge write-heavy tables | 37 MB vs 21 MB index, 2.6× slower inserts (measured, [03-01](../03-data-modeling/01-data-types.md#5-ids-bigint-vs-uuid-measured-1m-rows)) | `bigint` identity, or `uuidv7()` (PG18) |
 | Large files in `bytea` | bloated backups & replication | object storage + URL column |
 
 ## Operations
