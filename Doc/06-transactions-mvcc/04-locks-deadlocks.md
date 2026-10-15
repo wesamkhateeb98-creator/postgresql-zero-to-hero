@@ -71,6 +71,36 @@ UPDATE acc SET balance = balance + 1 WHERE id = 1;   -- ⏳ hangs here
 COMMIT;                                           -- T2's UPDATE finishes now
 ```
 
+### See it: `pg_locks` while T2 is waiting
+
+Give each session a name (`SET application_name = 'T1';` / `'T2'`), then from a **third** terminal:
+
+```sql
+SELECT a.application_name AS who, l.locktype,
+       coalesce(l.relation::regclass::text, l.transactionid::text) AS target,
+       l.mode, l.granted
+FROM pg_locks l JOIN pg_stat_activity a USING (pid)
+WHERE a.application_name IN ('T1', 'T2')
+  AND l.locktype <> 'virtualxid'
+ORDER BY who, locktype, target;
+```
+```text
+ who |   locktype    |  target  |       mode       | granted
+-----+---------------+----------+------------------+---------
+ T1  | relation      | acc      | RowExclusiveLock | t        ← table lock of an UPDATE (weak)
+ T1  | relation      | acc_pkey | RowExclusiveLock | t
+ T1  | transactionid | 108443   | ExclusiveLock    | t        ← T1's own transaction ID
+ T2  | relation      | acc      | RowExclusiveLock | t        ← table level: no conflict
+ T2  | relation      | acc_pkey | RowExclusiveLock | t
+ T2  | transactionid | 108443   | ShareLock        | f        ← ⏳ waiting for T1's transaction to end
+ T2  | transactionid | 108444   | ExclusiveLock    | t
+ T2  | tuple         | acc      | ExclusiveLock    | t        ← "I'm first in line for this row"
+```
+
+How to read it:
+- The row lock itself isn't a line here. It's written **inside the row** (its `xmax` = T1's transaction ID).
+- T2 sees that mark and waits on **T1's transaction ID** (`transactionid 108443`, `granted = f`). When T1 ends, that lock is released and T2 continues.
+
 ## 1.2 Who waits for a row lock (measured)
 
 T1 holds row 1 with `SELECT … FOR UPDATE`. T2 runs each statement:
@@ -83,6 +113,21 @@ T1 holds row 1 with `SELECT … FOR UPDATE`. T2 runs each statement:
 | `INSERT INTO acc VALUES (3, …)` (new row) | ❌ | 2.2 ms |
 
 Only writers on the **same row** wait.
+
+```sql
+-- T1
+BEGIN;
+SELECT * FROM acc WHERE id = 1 FOR UPDATE;              -- 🔒 row 1
+
+-- T2 (\timing on)
+SELECT balance FROM acc WHERE id = 1;                   -- 3.7 ms   ✅ reader
+UPDATE acc SET balance = balance WHERE id = 2;          -- 3.3 ms   ✅ other row
+INSERT INTO acc VALUES (3, 'Hadi', 300);                -- 2.2 ms   ✅ new row
+UPDATE acc SET balance = balance WHERE id = 1;          -- ⏳ until T1 ends (705 ms here)
+
+-- T1
+ROLLBACK;
+```
 
 ## 1.3 The 4 row lock modes
 
@@ -106,7 +151,47 @@ Conflict matrix (measured: T1 holds the row, T2 requests with `NOWAIT`):
 
 ✅ = granted at once · ⏳ = must wait
 
-Why `FOR NO KEY UPDATE` + `FOR KEY SHARE` = ✅: a normal `UPDATE` of a product's price must not block someone inserting an order that references that product (FK check).
+Try one cell yourself:
+```sql
+-- T1
+BEGIN;
+SELECT * FROM acc WHERE id = 1 FOR SHARE;
+
+-- T2
+SELECT id FROM acc WHERE id = 1 FOR SHARE NOWAIT;     -- ✅ 1          (share + share)
+SELECT id FROM acc WHERE id = 1 FOR UPDATE NOWAIT;    -- ❌ ERROR:  could not obtain lock on row in relation "acc"
+```
+
+See which rows are locked, and how (extension `pgrowlocks`, ships with PostgreSQL):
+```sql
+-- T1
+BEGIN;
+SELECT * FROM acc WHERE id = 1 FOR UPDATE;
+SELECT * FROM acc WHERE id = 2 FOR SHARE;
+
+-- another terminal
+CREATE EXTENSION IF NOT EXISTS pgrowlocks;
+SELECT locked_row, multi, modes FROM pgrowlocks('acc');
+--  locked_row | multi |     modes
+--  (0,1)      | f     | {"For Update"}
+--  (0,2)      | f     | {"For Share"}
+```
+
+### Why the weak modes exist: foreign keys (measured)
+
+**Definition:** inserting a child row (e.g. an order) makes PostgreSQL lock the parent row with `FOR KEY SHARE`, so the parent can't disappear before the insert commits.
+
+```sql
+CREATE TABLE acc_orders (id int PRIMARY KEY, acc_id int REFERENCES acc(id), amount int);
+```
+
+| T1 holds (open transaction) | Row lock T1 takes | T2: `INSERT INTO acc_orders VALUES (…, <same acc>, 10)` |
+|---|---|---|
+| `UPDATE acc SET balance = balance + 1 WHERE id = 1` | `FOR NO KEY UPDATE` | ✅ 10 ms, no wait |
+| `UPDATE acc SET id = 3 WHERE id = 1` (key changes) | `FOR UPDATE` | ⏳ waits: **909 ms** |
+| `DELETE FROM acc WHERE id = 2` | `FOR UPDATE` | ⏳ waits: **906 ms** |
+
+So a normal `UPDATE` of a balance (or a product's price) never blocks inserting orders that reference it. Only changing or deleting the **key** does.
 
 ---
 
@@ -177,6 +262,13 @@ CONTEXT:  while updating tuple (0,6) in relation "acc"
 
 Result: T1 committed → `1 = 900`, `2 = 600`. T2 was rolled back entirely → the app must **retry** it (SQLSTATE `40P01`).
 
+```sql
+SHOW deadlock_timeout;                          -- 1s: wait this long before checking for a cycle
+SELECT 1 FROM acc;                              -- in T2 after the error:
+-- ERROR:  current transaction is aborted, commands ignored until end of transaction block
+ROLLBACK;                                       -- required before T2 can do anything
+```
+
 ## 2.2 Fix: always lock in the same order
 
 A cycle needs two transactions taking locks in **opposite** orders. Make every transaction lock rows **sorted by id** first → the second one waits at the very first lock and never holds a row the first one needs.
@@ -229,6 +321,24 @@ Other code paths may lock in a different order (triggers, FKs). Treat `40P01` li
 | `CREATE INDEX` (not concurrent) | `SHARE` |
 | `ALTER TABLE`, `DROP TABLE`, `TRUNCATE`, `VACUUM FULL` | `ACCESS EXCLUSIVE` |
 
+See it for yourself: run a statement inside a transaction, then ask `pg_locks` what your own session holds on `acc`:
+
+```sql
+BEGIN;
+UPDATE acc SET balance = balance WHERE id = 1;          -- try each statement here
+SELECT mode FROM pg_locks
+WHERE pid = pg_backend_pid() AND relation = 'acc'::regclass;
+ROLLBACK;
+```
+
+| Statement inside the transaction | `mode` (measured) |
+|---|---|
+| `SELECT count(*) FROM acc` | `AccessShareLock` |
+| `UPDATE acc SET balance = balance WHERE id = 1` | `RowExclusiveLock` |
+| `SELECT * FROM acc WHERE id = 1 FOR UPDATE` | `RowShareLock` |
+| `CREATE INDEX tmp_acc_owner ON acc (owner)` | `ShareLock` |
+| `ALTER TABLE acc ADD COLUMN note text` | `AccessExclusiveLock` |
+
 Conflict matrix (measured with `LOCK TABLE … NOWAIT`):
 
 | T1 holds ↓ / T2 requests → | `ACCESS SHARE` (SELECT) | `ROW EXCLUSIVE` (writes) | `SHARE` (CREATE INDEX) | `ACCESS EXCLUSIVE` (ALTER) |
@@ -237,6 +347,21 @@ Conflict matrix (measured with `LOCK TABLE … NOWAIT`):
 | `ROW EXCLUSIVE` (writes) | ✅ | ✅ | ⏳ | ⏳ |
 | `SHARE` (CREATE INDEX) | ✅ | ⏳ | ✅ | ⏳ |
 | `ACCESS EXCLUSIVE` (ALTER) | ⏳ | ⏳ | ⏳ | ⏳ |
+
+Try one row of the matrix:
+```sql
+-- T1: a reader with an open transaction (holds ACCESS SHARE)
+BEGIN;
+SELECT count(*) FROM acc;
+
+-- T2
+BEGIN;
+LOCK TABLE acc IN ROW EXCLUSIVE MODE NOWAIT;      -- ✅ LOCK TABLE         (what writes need)
+ROLLBACK;
+BEGIN;
+LOCK TABLE acc IN ACCESS EXCLUSIVE MODE NOWAIT;   -- ❌ ERROR:  could not obtain lock on relation "acc"   (what ALTER needs)
+ROLLBACK;
+```
 
 Reading it:
 - `SELECT` and writes never block each other at table level (row locks handle writers).
@@ -268,6 +393,22 @@ sequenceDiagram
     T1->>Q: COMMIT
     Q-->>A: granted → runs
     Q-->>S: granted → runs (1.4 s late)
+```
+
+**SQL**, three terminals in time order:
+```sql
+-- T1 (e.g. a report that forgot to COMMIT)
+BEGIN;
+SELECT count(*) FROM acc;                         -- holds ACCESS SHARE until COMMIT
+
+-- Migration
+ALTER TABLE acc ADD COLUMN note text;             -- ⏳ needs ACCESS EXCLUSIVE → waits for T1
+
+-- App
+SELECT count(*) FROM acc;                         -- ⏳ waits behind the ALTER (1,407 ms)
+
+-- T1
+COMMIT;                                           -- ALTER runs, then the app SELECT
 ```
 
 `pg_stat_activity` during the wait:
@@ -309,6 +450,28 @@ T1 holds row 1 with `FOR UPDATE`. T2:
 | `SELECT * FROM acc WHERE id = 1 FOR UPDATE NOWAIT;` | ❌ `could not obtain lock on row in relation "acc"` | 5 ms |
 | `SET lock_timeout = '500ms';` then `SELECT * FROM acc WHERE id = 1 FOR UPDATE;` | ❌ `canceling statement due to lock timeout` | 502 ms |
 | `SELECT * FROM acc WHERE id = 2 FOR UPDATE;` | ✅ `2 \| 600`: row 2 is free | 3 ms |
+
+```sql
+-- T1
+BEGIN;
+SELECT * FROM acc WHERE id = 1 FOR UPDATE;            -- 🔒 row 1
+
+-- T2 (\timing on)
+SELECT * FROM acc WHERE id = 1 FOR UPDATE NOWAIT;
+-- ERROR:  could not obtain lock on row in relation "acc"          Time: 0.7 ms
+
+SET lock_timeout = '500ms';
+SELECT * FROM acc WHERE id = 1 FOR UPDATE;
+-- ERROR:  canceling statement due to lock timeout
+-- CONTEXT:  while locking tuple (0,1) in relation "acc"           Time: 501.6 ms
+
+SELECT * FROM acc WHERE id = 2 FOR UPDATE;
+--  2 | Sara | 500                                                Time: 6.2 ms
+
+RESET lock_timeout;                                   -- back to "wait forever"
+```
+
+`lock_timeout` lasts for the session. Use `SET LOCAL lock_timeout = …` inside a transaction to limit it to that transaction.
 
 ## 4.2 Job queue with `SKIP LOCKED` (measured)
 
@@ -371,6 +534,14 @@ WHERE cardinality(pg_blocking_pids(pid)) > 0;
 | `blocked_by` | PIDs holding the lock you wait for |
 | `wait_event_type = Lock` | waiting on a lock (not on disk / CPU) |
 | `xact_age` | how long the transaction has been open |
+
+Real output while T2 waited for T1's `UPDATE` on row 1 (§1.1):
+```text
+ who |  pid  | blocked_by | wait_event_type |  wait_event   | state  |                       query
+-----+-------+------------+-----------------+---------------+--------+----------------------------------------------------
+ T2  | 12267 | {12268}    | Lock            | transactionid | active | UPDATE acc SET balance = balance + 1 WHERE id = 1;
+```
+`blocked_by = {12268}` = T1's pid · `wait_event = transactionid` = waiting for T1's transaction to end (a row lock).
 
 Follow `blocked_by` to the **root** blocker (often `idle in transaction`), then:
 ```sql
