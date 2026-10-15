@@ -334,7 +334,7 @@ flowchart TD
 | Flash sale: 1,000 buyers, 10 items | **Pessimistic** or atomic | hot rows: optimistic would mostly fail |
 | Bank transfer between two accounts | **Pessimistic** in id order | must succeed, short transaction |
 | Seat / room booking | **Pessimistic**, or a constraint (`EXCLUDE`) | hot rows at opening time |
-| Job queue with many workers | **Pessimistic** + `SKIP LOCKED` | workers skip each other's jobs ([locks §4.2](04-locks-deadlocks.md#42-job-queue-with-skip-locked-measured)) |
+| Job queue with many workers | **Pessimistic** + `SKIP LOCKED` | workers skip each other's jobs ([locks §4.3](04-locks-deadlocks.md#43-skip-locked-job-queue)) |
 | REST API `PUT` with `If-Match: <version>` header | **Optimistic** | the version travels to the client and back (HTTP 412 on conflict) |
 
 ## Key Points

@@ -76,7 +76,7 @@ WHERE id = 7
 RETURNING id, stock, price;
 ```
 
-`stock = stock - 1` is computed **by the database** on the current value → safe when two users buy at once ([isolation levels](../06-transactions-mvcc/02-isolation-levels.md#44-lost-update)).
+`stock = stock - 1` is computed **by the database** on the current value → safe when two users buy at once ([isolation levels](../06-transactions-mvcc/02-isolation-levels.md#4-lost-update)).
 
 ## 4. DELETE
 
